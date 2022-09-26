@@ -37,6 +37,7 @@ func main() {
 		config.SleepAfterSeconds,
 		config.ProxyURL,
 		cancel)
+
 	srv := http.Server{
 		Addr:    config.ListenAddr,
 		Handler: handler,
