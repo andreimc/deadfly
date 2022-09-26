@@ -21,7 +21,7 @@ type Handler struct {
 
 func NewHandler(enableSleepMode bool, production bool, sleepAfterSeconds int, proxyUrl string, cancel func()) *Handler {
 
-	return &Handler{
+	h := &Handler{
 		enableSleepMode:   enableSleepMode,
 		enablePlayground:  !production,
 		sleepCh:           make(chan struct{}),
@@ -29,15 +29,18 @@ func NewHandler(enableSleepMode bool, production bool, sleepAfterSeconds int, pr
 		proxyUrl:          proxyUrl,
 		cancel:            cancel,
 	}
-}
 
-func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Initialise sleep mode
 	h.init.Do(func() {
 		if h.enableSleepMode {
 			go h.runSleepMode()
 		}
 	})
 
+	return h
+}
+
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	target := h.proxyUrl
 	url, _ := url.Parse(target)
 	proxy := httputil.NewSingleHostReverseProxy(url)
