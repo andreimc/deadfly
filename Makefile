@@ -9,7 +9,9 @@ all: vet sec static build ## Run the tests and build the binary.
 
 build: deps ## Build the binary.
 	go build $(FLAGS)
-	GOOS=linux GOARCH=x86 go build $(FLAGS) -o deadfly-linux-x86
+	GOOS=linux GOARCH=amd64 go build $(FLAGS) -o deadfly-linux-amd64
+	GOOS=darwin GOARCH=amd64 go build $(FLAGS) -o deadfly-darwin-amd64
+	GOOS=darwin GOARCH=arm64 go build $(FLAGS) -o deadfly-darwin-x86
 
 dev-deps: ## Install developer dependencies
 	@go install github.com/gobuffalo/pop/soda@latest
@@ -19,12 +21,6 @@ dev-deps: ## Install developer dependencies
 deps: ## Install dependencies.
 	@go mod download
 	@go mod verify
-
-migrate_dev: ## Run database migrations for development.
-	hack/migrate.sh postgres
-
-migrate_test: ## Run database migrations for test.
-	hack/migrate.sh postgres
 
 test: build ## Run tests.
 	go test $(CHECK_FILES) -coverprofile=coverage.out -coverpkg ./... -p 1 -race -v -count=1
@@ -44,30 +40,9 @@ unused: dev-deps # Look for unused code
 	
 	@echo "Code used only in _test.go (do move it in those files):"
 	staticcheck -checks U1000 -tests=false $(CHECK_FILES)
+
 static: dev-deps
 	staticcheck ./...
-
-dev: ## Run the development containers
-	docker-compose -f $(DEV_DOCKER_COMPOSE) up
-
-down: ## Shutdown the development containers
-	# Start postgres first and apply migrations
-	docker-compose -f $(DEV_DOCKER_COMPOSE) down
-
-docker-test: ## Run the tests using the development containers
-	docker-compose -f $(DEV_DOCKER_COMPOSE) up -d postgres
-	docker-compose -f $(DEV_DOCKER_COMPOSE) run gotrue sh -c "make migrate_test"
-	docker-compose -f $(DEV_DOCKER_COMPOSE) run gotrue sh -c "make test"
-	docker-compose -f $(DEV_DOCKER_COMPOSE) down -v
-
-docker-build: ## Force a full rebuild of the development containers
-	docker-compose -f $(DEV_DOCKER_COMPOSE) build --no-cache
-	docker-compose -f $(DEV_DOCKER_COMPOSE) up -d postgres
-	docker-compose -f $(DEV_DOCKER_COMPOSE) run gotrue sh -c "make migrate_dev"
-	docker-compose -f $(DEV_DOCKER_COMPOSE) down
-
-docker-clean: ## Remove the development containers and volumes
-	docker-compose -f $(DEV_DOCKER_COMPOSE) rm -fsv
 
 format:
 	gofmt -s -w .

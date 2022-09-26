@@ -7,3 +7,4 @@ fly.toml
 migration-engine
 query-engine
 node_modules
+deadfly*
