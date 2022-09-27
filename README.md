@@ -1,5 +1,7 @@
 # DeadFly
 
+[![.github/workflows/release.yml](https://github.com/andreimc/deadfly/actions/workflows/release.yml/badge.svg)](https://github.com/andreimc/deadfly/actions/workflows/release.yml)
+
 Is a simple proxy that allows you to basically shut down any fly machine in x seconds of inactivity
 
 The first request is required to start the init process.
